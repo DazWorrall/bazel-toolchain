@@ -22,11 +22,20 @@ _known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fed
 def _major_llvm_version(llvm_version):
     return int(llvm_version.split(".")[0])
 
-def _darwin(llvm_version):
+
+def _darwin_apple_suffix(major_llvm_version, arch):
+    if major_llvm_version == 9:
+        "darwin-apple"
+    elif arch == "arm64":
+        return "apple-darwin21.0"
+    else:
+        return "apple-darwin"
+
+def _darwin(llvm_version, arch):
     major_llvm_version = _major_llvm_version(llvm_version)
-    suffix = "darwin-apple" if major_llvm_version == 9 else "apple-darwin"
-    return "clang+llvm-{llvm_version}-x86_64-{suffix}.tar.xz".format(
-        llvm_version=llvm_version, suffix=suffix)
+    suffix = _darwin_apple_suffix(major_llvm_version, arch)
+    return "clang+llvm-{llvm_version}-{arch}-{suffix}.tar.xz".format(
+        llvm_version=llvm_version, suffix=suffix, arch=arch)
 
 def _windows(llvm_version):
     if platform.machine().endswith('64'):
@@ -129,7 +138,7 @@ def main():
 
     system = platform.system()
     if system == "Darwin":
-        print(_darwin(llvm_version))
+        print(_darwin(llvm_version, platform.machine()))
         sys.exit()
 
     if system == "Windows":
